@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <title>Custom Github org scanner with full git history</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        h1 {
+            color: #333;
+        }
+        pre {
+            background-color: #f4f4f4;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+        }
+        code {
+            font-family: Consolas, 'Courier New', monospace;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+    </style>
+</head>
+<body>
+
+<h1>First add the org, then uncomment sections</h1>
+
+<p>Made by -A-A-ron </p>
+
+<pre><code>
+    import subprocess
+    import os
+    import json
+    
+    # prerequists - install gitleaks, trufflehog, ripgrep.
+    # Set up the organization and output directory
+    ORG_NAME = ""
+    OUTPUT_DIR = "./security_scan_results"
+    os.makedirs(OUTPUT_DIR, exist_ok=True)
+    
+    KEYWORDS = (
+        "password|username|secret|access_token|"
+        "bearer |PRIVATE KEY|BEGIN RSA PRIVATE KEY|BEGIN DSA PRIVATE KEY|"
+        "BEGIN EC PRIVATE KEY|jwt|authorization|session_token|"
+        "client_secret|auth_token|aws_access_key|aws_secret_key|"
+        "encryption_key"
+    )
+    
+    def get_public_repos(org_name):
+        """Get all public repositories for the given organization using plain text output."""
+        print(f"Fetching public repositories for organization: {org_name}")
+    
+        # limit is set for 200 - change based on org
+        result = subprocess.run(
+            ["gh", "repo", "list", org_name, "--limit", "200"],
+            capture_output=True,
+            text=True
+        )
+    
+        # Print raw output and errors for debugging
+        print("Raw STDOUT:", result.stdout)
+        print("Raw STDERR:", result.stderr)
+    
+        if result.returncode != 0:
+            print("Error fetching repositories:", result.stderr)
+            return []
+    
+        # Process each line of plain text output to extract repo names
+        public_repos = []
+        for line in result.stdout.strip().split("\n"):
+            # Split on tabs and take only the repo name (ignoring org name)
+            parts = line.split("\t")
+            if len(parts) &gt;= 2 and parts[2] == "public":
+                # Extract just the repo name  
+                repo_name = parts[0].split("/")[-1]
+                public_repos.append(repo_name)
+    
+        print(f"Found {len(public_repos)} public repositories.")
+        return public_repos
+    
+    def clone_repo(org_name, repo_name):
+        """Clone the repo to a temp directory."""
+        repo_url = f"https://github.com/{org_name}/{repo_name}.git"
+        repo_path = os.path.join(OUTPUT_DIR, repo_name)
+        print(f"Cloning {repo_url}")
+        subprocess.run(["git", "clone", "--mirror", repo_url, repo_path], check=True)
+        return repo_path
+    
+    def run_gitleaks(repo_path):
+        """Run Gitleaks on the repo """
+        output_file = os.path.join(OUTPUT_DIR, f"{os.path.basename(repo_path)}_gitleaks_report.json")
+        print(f"Running Gitleaks on {repo_path}")
+        result = subprocess.run(
+            [
+                "gitleaks", "detect",
+                "--source", repo_path,
+                "--verbose",
+                "--report-format", "json",
+                "--report-path", output_file
+            ],
+            capture_output=True,
+            text=True
+        )
+        if result.returncode == 0:
+            print(f"Gitleaks completed for {repo_path}. Report saved to {output_file}")
+        else:
+            print(f"Gitleaks error for {repo_path}: {result.stderr}")
+    
+    
+    def search_sensitive_keywords(repo_path):
+        """Search for sensitive keywords in the full git history."""
+        output_file = os.path.join(OUTPUT_DIR, f"{os.path.basename(repo_path)}_keyword_search_report.txt")
+        print(f"Searching for sensitive keywords in {repo_path}")
+    
+        with open(output_file, "w") as f:
+            result = subprocess.run(
+                ["git", "-C", repo_path, "log", "-p", "--all"],
+                capture_output=True,
+                text=True,
+                encoding="utf-8",  # Specify encoding (work-around fix)
+                errors="ignore"    # Ignore any encoding errors
+            )
+            if result.returncode == 0:
+                # Pass the output of `git log` to ripgrep (rg) to search for keywords
+                rg_result = subprocess.run(
+                    ["rg", "--ignore-case", KEYWORDS],
+                    input=result.stdout,
+                    text=True,
+                    encoding="utf-8",
+                    errors="ignore",
+                    capture_output=True
+                )
+                f.write(rg_result.stdout)
+                print(f"Searched for keywords in {repo_path}. Report saved to {output_file}")
+            else:
+                print(f"Error running git log on {repo_path}: {result.stderr}")
+    
+    
+    
+    def run_trufflehog(repo_path):
+        """Run TruffleHog on the repository."""
+        output_file = os.path.join(OUTPUT_DIR, f"{os.path.basename(repo_path)}_trufflehog_report.json")
+        print(f"Running TruffleHog on {repo_path}")
+        result = subprocess.run(
+            ["trufflehog", "git", repo_path, "--json"],
+            capture_output=True,
+            text=True
+        )
+        with open(output_file, "w") as f:
+            f.write(result.stdout)
+        print(f"TruffleHog completed for {repo_path}. Report saved to {output_file}")
+    
+    def main():
+        public_repos = get_public_repos(ORG_NAME)
+    
+        if not public_repos:
+            print("No public repositories found. Exiting.")
+            return
+    
+        for repo_name in public_repos:
+            try:
+                # Clone the repository
+                repo_path = clone_repo(ORG_NAME, repo_name)
+    
+                # Run Gitleaks
+                run_gitleaks(repo_path)
+    
+                # Run TruffleHog
+                # run_trufflehog(repo_path)
+    
+                # Search for sensitive keywords in the full git history
+                # search_sensitive_keywords(repo_path)
+    
+                # Cleanup repository
+                print(f"Cleaning up {repo_path}")
+                subprocess.run(["rm", "-rf", repo_path])
+    
+            except subprocess.CalledProcessError as e:
+                print(f"Error processing repository {repo_name}: {e}")
+    
+    if __name__ == "__main__":
+        main()
+    
+</code></pre>
+
+
+</body></html>
