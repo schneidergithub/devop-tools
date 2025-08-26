@@ -1,0 +1,180 @@
+User Story: Automated GitHub Organization Secret & History Scanning
+📌 Summary
+
+Automate full security scanning of a GitHub organization, including the complete commit history of every repository, to detect leaked secrets and sensitive data using industry-standard tools.
+📝 Description
+Context
+
+Organizations often accidentally commit secrets (API keys, credentials, tokens, private keys) into their repositories. Even if later removed, they remain in git history. We need a solution that scans every repo in an org, including all historical commits, and produces auditable reports.
+Goal
+
+Build a repeatable, configurable tool that:
+
+    Enumerates all repositories in a GitHub organization.
+
+    Clones them in a way that preserves full git history.
+
+    Runs multiple scanning engines (e.g., Gitleaks, TruffleHog, regex-based keyword searches).
+
+    Produces structured reports per repo and an org-wide summary.
+
+    Integrates with CI/CD pipelines for scheduled scans and gating.
+
+Scope (80/20)
+
+    CLI tool with configuration file for org name, enabled tools, repo limits.
+
+    Integration with GitHub CLI or API for repo discovery.
+
+    Parallelized scanning to handle 100+ repos efficiently.
+
+    Reports stored in machine-readable JSON + human-readable markdown.
+
+    CI/CD integration with scheduled runs and artifact uploads.
+
+Out of Scope (initial story)
+
+    Auto-remediation (revoking keys, making PRs).
+
+    Enterprise DLP or third-party SaaS integrations.
+
+    Slack/Teams notifications.
+
+✅ Tasks (Checklist)
+
+    Implement repo discovery (GitHub API/CLI) with pagination and filters.
+
+    Implement cloning method that captures full commit history (mirror clone).
+
+    Integrate Gitleaks to scan each repo.
+
+    Integrate TruffleHog as optional deep scanner.
+
+    Add regex/keyword-based search for common secret patterns.
+
+    Create standardized folder structure for reports (/results/<repo>/).
+
+    Aggregate results into org_summary.json and org_summary.md.
+
+    Add exit codes (0=clean, 2=findings, 3=error).
+
+    Add unit tests (parsing, repo discovery, report aggregation).
+
+    Create CI/CD pipeline (GitHub Actions) for scheduled & manual runs.
+
+    Add README with setup, usage, and troubleshooting.
+
+🧪 Acceptance Criteria (Gherkin)
+
+Feature: Automated GitHub org-wide secret scanning
+  As a security team
+  I want to scan all repositories in an organization, including history
+  So that secrets and sensitive data are detected early and consistently
+
+  Background:
+    Given I have provided a GitHub organization name
+    And I have installed scanning tools (gitleaks, trufflehog, regex searcher)
+    And I have authentication with permission to list and clone repos
+
+  Scenario: Scan runs successfully
+    When I run the tool with default settings
+    Then it discovers all repositories in the org
+    And clones them with full history
+    And executes all enabled scanners
+    And saves reports under results/<repo>/
+    And produces org_summary.json with aggregated findings
+    And exits with code 0 if no findings are present
+
+  Scenario: Findings detected
+    Given a repo contains exposed secrets
+    When the scan completes
+    Then the tool exits with code 2
+    And org_summary.json includes a non-zero findings count
+
+  Scenario: Operational failure
+    Given a network error prevents cloning a repo
+    When the scan completes
+    Then the tool exits with code 3
+    And org_summary.json records the repo as failed with error details
+
+  Scenario: CI pipeline integration
+    When the workflow runs on a schedule
+    Then all per-repo reports and the org summary are uploaded as artifacts
+    And SARIF reports are published to the code scanning dashboard
+
+🧪 TDD (High-Level Test Plan)
+Unit Tests
+
+    Repo discovery returns correct repo names from GitHub API.
+
+    Repo cloning utility handles retries and cleanup.
+
+    Report aggregator merges per-repo findings correctly.
+
+    Exit code resolver maps findings/errors correctly.
+
+Integration Tests
+
+    End-to-end run against a sample org with 2–3 repos.
+
+    Reports created in expected folder structure.
+
+    CI pipeline uploads artifacts successfully.
+
+Contract Tests
+
+    JSON reports validate against schema.
+
+    SARIF output is accepted by GitHub code scanning.
+
+⚙️ Quality Requirements
+
+    Performance: handle 100 repos in <30 minutes (p95) with parallelism.
+
+    Reliability: retry logic on network/git errors.
+
+    Security: no secrets written to logs.
+
+    Observability: structured logging, summary metrics.
+
+📌 Definition of Done
+
+    Tool runs successfully against a test org.
+
+    Reports per repo + org summary generated.
+
+    CI/CD workflow runs scheduled scans and uploads artifacts.
+
+    README documents setup, usage, and troubleshooting.
+
+    Unit & smoke tests pass.
+
+⚠️ Risks & Mitigations
+
+    Rate limits: Mitigate with pagination + sleep/backoff.
+
+    Disk usage: Clean up clones after scan.
+
+    False positives: Allow tuning of regex/keywords.
+
+📊 Metrics (in summary report)
+
+    Total repos scanned.
+
+    Findings count by tool.
+
+    Errors encountered.
+
+    Runtime duration.
+
+    Tool versions.
+
+📦 Dependencies
+
+    GitHub API/CLI.
+
+    Gitleaks, TruffleHog, regex tool (ripgrep or similar).
+
+    Python 3.10+ (or equivalent runtime).
+
+    Git installed.
