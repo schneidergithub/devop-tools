@@ -1,0 +1,85 @@
+# 📖 Glossary of Terms
+
+### Scrum
+A lightweight Agile framework used to develop and sustain complex products. It defines roles, artifacts, and ceremonies to ensure transparency, inspection, and adaptation.
+
+### Scrum Team
+A cross-functional group that delivers increments of value in timeboxed iterations (sprints). It typically consists of a **Product Owner**, **Scrum Master**, and **Developers** (including QA, design, etc.).
+
+### Product Owner (PO)
+The role responsible for maximizing the value of the product by managing the **Product Backlog**. Owns prioritization and acceptance of work.
+
+### Scrum Master (SM)
+The servant-leader role that facilitates Scrum events, coaches the team on Agile practices, and removes impediments.
+
+### Developer
+Any member of the Scrum Team building the product increment (coding, designing, testing). In Scrum, “Developer” is a generic role, not limited to programming.
+
+### QA (Quality Assurance)
+A role within Developers focused on validating quality through automated/manual testing, ensuring that acceptance criteria and **Definition of Done** are met.
+
+### Stakeholder
+A person external to the Scrum Team who has an interest in the outcome of the product. They can provide feedback during reviews but do not manage the backlog.
+
+### Observer
+A participant allowed to watch ceremonies (e.g., Daily Scrum) without actively contributing. Often used for onboarding or audits.
+
+### AI_Agent
+A software-based team member emulating a Scrum role. Can act as Builder/Refiner/Supporter, aligning with PMAC’s hybrid human/AI model.
+
+### Product Backlog
+An ordered list of all potential work items (stories, bugs, spikes, enablers). Owned by the Product Owner.
+
+### Sprint Backlog
+A subset of the Product Backlog selected for a Sprint, including a plan for delivering the increment and achieving the Sprint Goal.
+
+### Increment
+The sum of completed backlog items during a Sprint that meet the **Definition of Done**. Represents a potentially shippable product.
+
+### Definition of Done (DoD)
+A shared agreement of what it means for work to be considered complete. Typically includes coding, testing, documentation, and deployment requirements.
+
+### Definition of Ready (DoR)
+A checklist ensuring backlog items are clear, testable, and small enough before being pulled into a Sprint.
+
+### Sprint
+A fixed timebox (commonly 2 weeks) in which a Scrum Team delivers a usable increment.
+
+### Sprint Planning
+A Scrum event at the start of the Sprint where the team selects backlog items and crafts the Sprint Goal.
+
+### Daily Scrum
+A 15-minute daily event where Developers synchronize progress and identify impediments.
+
+### Sprint Review
+An event at the end of a Sprint where the team demonstrates the increment to stakeholders and gathers feedback.
+
+### Sprint Retrospective
+An event at the end of a Sprint where the team inspects how they worked and identifies improvements for the next Sprint.
+
+### Backlog Refinement
+An ongoing activity where the team clarifies, estimates, and splits backlog items to prepare for future Sprints.
+
+### Visibility Levels
+Defines access rules for artifacts/events:
+- **Public** → visible to anyone.
+- **Team** → visible only to Scrum Team members.
+- **Private** → restricted; only accessible via exceptions.
+
+### Permission Matrix
+A mapping of **roles** to **allowed operations** (e.g., PO can reorder backlog, QA can test, Stakeholders can comment publicly).
+
+### Gherkin
+A human-readable, structured language for defining behaviors in a Given–When–Then format. Typically stored in `.feature` files.
+
+### Cucumber / Behave / SpecFlow
+BDD frameworks that parse `.feature` files and connect Gherkin steps to automated test code.
+
+### TDD (Test-Driven Development)
+A software practice where tests are written before the implementation, ensuring code meets its requirements.
+
+### BDD (Behavior-Driven Development)
+An Agile practice extending TDD by focusing on system behavior from the user’s perspective using Gherkin scenarios.
+
+### PolicyEngine (object model)
+A code construct in our hypothetical design that enforces role-based permissions and visibility rules for artifacts and events.
