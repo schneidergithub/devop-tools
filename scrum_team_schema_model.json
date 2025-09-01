@@ -1,0 +1,223 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "pmac.scrum.schema.json",
+  "title": "ScrumObjectModel",
+  "type": "object",
+  "properties": {
+    "team": {
+      "type": "object",
+      "required": ["id", "name", "members", "artifacts", "events", "policies"],
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "members": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["id", "displayName", "roles", "visibility"],
+            "properties": {
+              "id": { "type": "string" },
+              "displayName": { "type": "string" },
+              "roles": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "enum": ["ProductOwner", "ScrumMaster", "Developer", "QA", "Stakeholder", "Observer", "AI_Agent"]
+                }
+              },
+              "visibility": {
+                "type": "object",
+                "properties": {
+                  "profile": { "type": "string", "enum": ["public", "team", "private"] },
+                  "notes": { "type": "string" }
+                },
+                "additionalProperties": false
+              },
+              "capabilities": {
+                "type": "array",
+                "items": { "type": "string" },
+                "description": "Free-form capabilities tags (e.g., 'frontend', 'devops', 'security')."
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "artifacts": {
+          "type": "object",
+          "required": ["productBacklog", "sprintBacklog", "increments", "definitions"],
+          "properties": {
+            "productBacklog": {
+              "type": "array",
+              "items": { "$ref": "#/$defs/BacklogItem" }
+            },
+            "sprintBacklog": {
+              "type": "array",
+              "items": { "$ref": "#/$defs/SprintBacklogItem" }
+            },
+            "increments": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "required": ["id", "sprintId", "commitHash", "notes", "visibility"],
+                "properties": {
+                  "id": { "type": "string" },
+                  "sprintId": { "type": "string" },
+                  "commitHash": { "type": "string" },
+                  "notes": { "type": "string" },
+                  "visibility": { "$ref": "#/$defs/Visibility" }
+                }
+              }
+            },
+            "definitions": {
+              "type": "object",
+              "required": ["definitionOfDone", "definitionOfReady"],
+              "properties": {
+                "definitionOfDone": {
+                  "type": "array",
+                  "items": { "type": "string" }
+                },
+                "definitionOfReady": {
+                  "type": "array",
+                  "items": { "type": "string" }
+                }
+              }
+            }
+          }
+        },
+        "events": {
+          "type": "array",
+          "description": "Sprint events and ceremonies as scheduled objects.",
+          "items": {
+            "type": "object",
+            "required": ["id", "type", "sprintId", "timeboxMins", "visibility", "attendees"],
+            "properties": {
+              "id": { "type": "string" },
+              "type": {
+                "type": "string",
+                "enum": ["SprintPlanning", "DailyScrum", "SprintReview", "SprintRetrospective", "BacklogRefinement"]
+              },
+              "sprintId": { "type": "string" },
+              "timeboxMins": { "type": "integer", "minimum": 5 },
+              "agenda": { "type": "array", "items": { "type": "string" } },
+              "attendees": {
+                "type": "array",
+                "items": { "type": "string" },
+                "description": "Member ids"
+              },
+              "visibility": { "$ref": "#/$defs/Visibility" }
+            }
+          }
+        },
+        "policies": {
+          "type": "object",
+          "required": ["visibilityRules", "permissionMatrix"],
+          "properties": {
+            "visibilityRules": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "required": ["target", "defaultLevel", "overrides"],
+                "properties": {
+                  "target": { "type": "string", "enum": ["BacklogItem", "SprintBacklogItem", "Increment", "Event", "Member"] },
+                  "defaultLevel": { "type": "string", "enum": ["public", "team", "private"] },
+                  "overrides": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "required": ["role", "level"],
+                      "properties": {
+                        "role": {
+                          "type": "string",
+                          "enum": ["ProductOwner", "ScrumMaster", "Developer", "QA", "Stakeholder", "Observer", "AI_Agent"]
+                        },
+                        "level": { "type": "string", "enum": ["public", "team", "private"] }
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "permissionMatrix": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "required": ["role", "allow"],
+                "properties": {
+                  "role": {
+                    "type": "string",
+                    "enum": ["ProductOwner", "ScrumMaster", "Developer", "QA", "Stakeholder", "Observer", "AI_Agent"]
+                  },
+                  "allow": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "enum": [
+                        "Backlog.Create","Backlog.Prioritize","Backlog.Reorder",
+                        "Sprint.Plan","Sprint.Commit","Sprint.UpdateRemaining",
+                        "Increment.Create","Increment.Publish",
+                        "Event.Schedule","Event.Facilitate",
+                        "Item.Comment.Public","Item.Comment.Private",
+                        "Item.Accept","Item.Reject","Item.Test","Item.Move",
+                        "Team.Invite","Team.Remove"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "$defs": {
+    "Visibility": {
+      "type": "object",
+      "required": ["level"],
+      "properties": {
+        "level": { "type": "string", "enum": ["public", "team", "private"] },
+        "exceptions": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["memberId", "grant"],
+            "properties": {
+              "memberId": { "type": "string" },
+              "grant": { "type": "string", "enum": ["view", "comment", "edit"] }
+            }
+          }
+        }
+      }
+    },
+    "BacklogItem": {
+      "type": "object",
+      "required": ["id", "title", "type", "visibility", "priority", "status", "owner"],
+      "properties": {
+        "id": { "type": "string" },
+        "title": { "type": "string" },
+        "type": { "type": "string", "enum": ["Story", "Bug", "Spike", "Enabler"] },
+        "description": { "type": "string" },
+        "acceptanceCriteria": { "type": "array", "items": { "type": "string" } },
+        "visibility": { "$ref": "#/$defs/Visibility" },
+        "priority": { "type": "integer", "minimum": 1 },
+        "status": { "type": "string", "enum": ["Proposed","Ready","InProgress","Blocked","Done","Accepted","Rejected"] },
+        "storyPoints": { "type": "integer", "minimum": 1 },
+        "owner": { "type": "string", "description": "Member id" },
+        "linkedItems": { "type": "array", "items": { "type": "string" } }
+      }
+    },
+    "SprintBacklogItem": {
+      "type": "object",
+      "allOf": [{ "$ref": "#/$defs/BacklogItem" }],
+      "required": ["sprintId", "commitment"],
+      "properties": {
+        "sprintId": { "type": "string" },
+        "commitment": { "type": "boolean" },
+        "remainingHours": { "type": "number", "minimum": 0 }
+      }
+    }
+  },
+  "required": ["team"],
+  "additionalProperties": false
+}

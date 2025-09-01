@@ -1,0 +1,73 @@
+{
+  "team": {
+    "id": "T-001",
+    "name": "Atlas Scrum",
+    "members": [
+      { "id": "U-PO", "displayName": "Riley (PO)", "roles": ["ProductOwner"], "visibility": { "profile": "public" }, "capabilities": ["roadmapping"] },
+      { "id": "U-SM", "displayName": "Kai (SM)", "roles": ["ScrumMaster"], "visibility": { "profile": "team" }, "capabilities": ["facilitation"] },
+      { "id": "U-DEV1", "displayName": "Ava Dev", "roles": ["Developer"], "visibility": { "profile": "team" }, "capabilities": ["frontend","devops"] },
+      { "id": "U-QA1", "displayName": "Noah QA", "roles": ["QA"], "visibility": { "profile": "team" }, "capabilities": ["automation"] },
+      { "id": "U-STK", "displayName": "Pat Stakeholder", "roles": ["Stakeholder"], "visibility": { "profile": "public" }, "capabilities": [] }
+    ],
+    "artifacts": {
+      "productBacklog": [
+        {
+          "id": "PB-101",
+          "title": "As a user, I can sign in with email",
+          "type": "Story",
+          "description": "Support email+password auth",
+          "acceptanceCriteria": ["Given valid credentials… Then user sees dashboard"],
+          "visibility": { "level": "public" },
+          "priority": 1,
+          "status": "Ready",
+          "storyPoints": 5,
+          "owner": "U-PO",
+          "linkedItems": []
+        }
+      ],
+      "sprintBacklog": [
+        {
+          "id": "PB-101",
+          "title": "As a user, I can sign in with email",
+          "type": "Story",
+          "description": "Support email+password auth",
+          "acceptanceCriteria": ["Given valid credentials… Then user sees dashboard"],
+          "visibility": { "level": "team", "exceptions": [{ "memberId": "U-STK", "grant": "view" }] },
+          "priority": 1,
+          "status": "InProgress",
+          "storyPoints": 5,
+          "owner": "U-DEV1",
+          "linkedItems": [],
+          "sprintId": "S-12",
+          "commitment": true,
+          "remainingHours": 12
+        }
+      ],
+      "increments": [
+        { "id": "INC-12", "sprintId": "S-11", "commitHash": "abc1234", "notes": "Auth foundation", "visibility": { "level": "public" } }
+      ],
+      "definitions": {
+        "definitionOfDone": ["All AC pass", "Automated tests >= 80%", "Security scan clean"],
+        "definitionOfReady": ["AC written", "Points sized", "Dependencies mapped"]
+      }
+    },
+    "events": [
+      { "id": "E-PLN-12", "type": "SprintPlanning", "sprintId": "S-12", "timeboxMins": 120, "agenda": ["Goal","Select PBIs","Plan"], "attendees": ["U-PO","U-SM","U-DEV1","U-QA1"], "visibility": { "level": "team" } },
+      { "id": "E-DS-12-01", "type": "DailyScrum", "sprintId": "S-12", "timeboxMins": 15, "agenda": ["Yesterday","Today","Risks"], "attendees": ["U-SM","U-DEV1","U-QA1"], "visibility": { "level": "team" } },
+      { "id": "E-REV-12", "type": "SprintReview", "sprintId": "S-12", "timeboxMins": 60, "agenda": ["Demo","Feedback"], "attendees": ["U-PO","U-SM","U-DEV1","U-QA1","U-STK"], "visibility": { "level": "public" } }
+    ],
+    "policies": {
+      "visibilityRules": [
+        { "target": "BacklogItem", "defaultLevel": "team", "overrides": [{ "role": "Stakeholder", "level": "public" }] },
+        { "target": "Event", "defaultLevel": "team", "overrides": [{ "role": "Stakeholder", "level": "public" }] }
+      ],
+      "permissionMatrix": [
+        { "role": "ProductOwner", "allow": ["Backlog.Create","Backlog.Prioritize","Backlog.Reorder","Item.Accept","Item.Reject","Event.Schedule"] },
+        { "role": "ScrumMaster", "allow": ["Event.Facilitate","Sprint.Plan","Team.Invite","Team.Remove"] },
+        { "role": "Developer", "allow": ["Sprint.Commit","Sprint.UpdateRemaining","Increment.Create","Item.Comment.Team","Item.Move"] },
+        { "role": "QA", "allow": ["Item.Test","Item.Comment.Team"] },
+        { "role": "Stakeholder", "allow": ["Item.Comment.Public"] }
+      ]
+    }
+  }
+}
