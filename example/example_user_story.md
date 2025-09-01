@@ -10,8 +10,7 @@ Automate full security scanning of a GitHub organization, including the complete
 
 Organizations often accidentally commit secrets (API keys, credentials, tokens, private keys) into their repositories. Even if later removed, they remain in git history. We need a solution that scans every repo in an org, including all historical commits, and produces auditable reports.
 
-
-GOAL
+GOAL:
 
 Build a repeatable, configurable tool that:
 
