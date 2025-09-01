@@ -1,11 +1,12 @@
 User Story: Runs a security scan on the full history of GitHub organizations.
 
-History Scanning
+Git Full-History Scanning
+
 📌 Summary
 
 Automate full security scanning of a GitHub organization, including the complete commit history of every repository, to detect leaked secrets and sensitive data using industry-standard tools.
-📝 Description
-Context
+
+📝 Description Context
 
 Organizations often accidentally commit secrets (API keys, credentials, tokens, private keys) into their repositories. Even if later removed, they remain in git history. We need a solution that scans every repo in an org, including all historical commits, and produces auditable reports.
 Goal
@@ -42,6 +43,7 @@ Out of Scope (initial story)
 
     Slack/Teams notifications.
 
+
 ✅ Tasks (Checklist)
 
     Implement repo discovery (GitHub API/CLI) with pagination and filters.
@@ -65,6 +67,7 @@ Out of Scope (initial story)
     Create CI/CD pipeline (GitHub Actions) for scheduled & manual runs.
 
     Add README with setup, usage, and troubleshooting.
+
 
 🧪 Acceptance Criteria (Gherkin)
 
